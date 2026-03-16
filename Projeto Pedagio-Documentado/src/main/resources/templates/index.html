@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel Inteligente - Cancela</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        header {
+            padding: 25px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .container {
+            padding: 40px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h3 {
+            font-size: 14px;
+            font-weight: 400;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+
+        .card .value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .status-display {
+            text-align: center;
+            font-size: 26px;
+            padding: 20px;
+            border-radius: 12px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .aberta {
+            background: rgba(0,255,150,0.15);
+            border: 2px solid #00ff99;
+            color: #00ff99;
+        }
+
+        .fechada {
+            background: rgba(255,0,90,0.15);
+            border: 2px solid #ff005a;
+            color: #ff005a;
+        }
+
+        .table-container {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: white;
+        }
+
+        th {
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1px;
+            opacity: 0.7;
+            padding: 12px;
+        }
+
+        td {
+            padding: 14px;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        tr:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    Sistema Inteligente de Monitoramento de Cancela
+</header>
+
+<div class="container">
+
+    <div id="statusCancela" class="status-display">
+        Carregando status...
+    </div>
+
+    <div class="dashboard">
+        <div class="card">
+            <h3>Total de Leituras</h3>
+            <div id="totalLeituras" class="value">0</div>
+        </div>
+
+        <div class="card">
+            <h3>Última Distância (cm)</h3>
+            <div id="ultimaDistancia" class="value">0</div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Distância (cm)</th>
+                <th>Status</th>
+                <th>Data/Hora</th>
+            </tr>
+            </thead>
+            <tbody id="tabela"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<footer>
+    © 2026 - Estacionamento Inteligente
+</footer>
+
+<script>
+    function carregarDados() {
+        fetch("http://localhost:8080/leituras")
+            .then(response => response.json())
+            .then(data => {
+
+                const tabela = document.getElementById("tabela");
+                const total = document.getElementById("totalLeituras");
+                const ultimaDistancia = document.getElementById("ultimaDistancia");
+                const statusDisplay = document.getElementById("statusCancela");
+
+                tabela.innerHTML = "";
+                total.innerText = data.length;
+
+                if (data.length > 0) {
+                    const ultima = data[data.length - 1];
+
+                    ultimaDistancia.innerText = ultima.distancia;
+
+                    statusDisplay.innerText = "CANCELA " + ultima.status.toUpperCase();
+
+                    if (ultima.status.toLowerCase() === "aberta") {
+                        statusDisplay.className = "status-display aberta";
+                    } else {
+                        statusDisplay.className = "status-display fechada";
+                    }
+                }
+
+                data.forEach(item => {
+                    tabela.innerHTML += `
+                        <tr>
+                            <td>${item.id}</td>
+                            <td>${item.distancia}</td>
+                            <td>${item.status}</td>
+                            <td>${item.dataHora}</td>
+                        </tr>
+                    `;
+                });
+
+            });
+    }
+
+    carregarDados();
+    setInterval(carregarDados, 5000);
+</script>
+
+</body>
+</html>
